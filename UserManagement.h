@@ -69,7 +69,20 @@ public:
         userID="";
         server.send("logout seccess",key);
     }
-    UserManagement& join()  //delete throw
+    UserManagement& IDoverlapCheck()
+    {
+        std::string id=server.receive(key);
+        if(id.length()<5||id.length()>20)
+            throw "ID length error";
+        query<<"select ID from userdata where ID='"+id+"'";
+        result=query.store();
+        if(result.num_rows()==0)
+            server.send("sucecss",key);
+        else server.send("ID OverLap!",key); 
+
+        return *this;
+    }
+    UserManagement& join()  //IDoverlapCheck edit
     {
         if(userID.length()!=0)  
             throw end;

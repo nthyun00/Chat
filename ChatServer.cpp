@@ -39,6 +39,10 @@ int main(int argc,char** argv)
                         user.makeChatRoom();
                     else if(uuid==8)
                         user.logout();
+                    else if(uuid==9)
+                        user.myChatList();
+                    else if(uuid==10)
+                        user.outChatRoom();
                     /*else //echo
                     {
                         pid_t pid1=fork();
@@ -60,7 +64,7 @@ int main(int argc,char** argv)
                 }
                 
             }
-            wait(0);
+            //wait(0);
         }
     } 
     catch (mysqlpp::BadQuery& e) 
