@@ -69,7 +69,7 @@ public:
         userID="";
         server.send("logout seccess",key);
     }
-    UserManagement& IDoverlapCheck()
+    UserManagement& IDoverlapCheck()  //
     {
         std::string id=server.receive(key);
         if(id.length()<5||id.length()>20)
