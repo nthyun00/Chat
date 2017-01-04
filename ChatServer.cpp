@@ -2,12 +2,19 @@
 #include "UserManagement.h"
 #include <mysql++/mysql++.h>
 #include <mysql++/result.h>
+#include <signal.h>
 #include <vector>
 
 using namespace std;
 
+void childHandler(int tmp)
+{
+    wait(0);
+}
+
 int main(int argc,char** argv)
 {
+    signal(SIGCHLD,childHandler);
     try
     {
         ServerTcpSocket server;
