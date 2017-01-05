@@ -6,6 +6,8 @@
 #include <mysql++/result.h>
 #include <vector>
 #include <stdlib.h>
+#include <time.h>
+#include <fstream>
 
 class UserManagement        //edit key
 {
@@ -16,16 +18,19 @@ private:
     mysqlpp::Query query;
     mysqlpp::StoreQueryResult result;
     std::string userID;
+    std::string logFile;
 public:
     enum Flag{end};
     UserManagement(ServerTcpSocket& _server,
                     std::string DBname,
                     std::string IP,
                     std::string id,
-                    std::string pw) : 
+                    std::string pw,
+                    std::string logFile) : 
                     server(_server) , 
                     con(DBname.c_str(),IP.c_str(),id.c_str(),pw.c_str(),3306) ,
-                    query(con.query())
+                    query(con.query()) ,
+                    logFile(logFile)
     {
         //con.connect(DBname.c_str(),IP.c_str(),id.c_str(),pw.c_str(),3306);
         //query=con.query();
@@ -46,6 +51,13 @@ public:
         }
         return ret;
     }
+    void writeLog(std::string param)
+    {
+        std::ofstream log(logFile,std::ios::app);
+        time_t nowTime=time(NULL);
+        log<<ctime(&nowTime)<<" : "<<param<<std::endl;
+        log.close();
+    }
     UserManagement& login() //send userdata
     {
         if(userID.length()!=0)  
@@ -57,11 +69,14 @@ public:
         if(result.num_rows()==1)
         {
             userID=std::string(result.at(0)["ID"]);
-            server.send(userID,key);
             server.send(std::string(result.at(0)["NAME"]),key);
+            writeLog(userID+" login success");
         }
-        else server.send("fail",key);
-
+        else 
+        {
+            server.send("fail",key);
+            writeLog("input "+id+", login fail");
+        }
         return *this;
     }
     UserManagement& logout()
