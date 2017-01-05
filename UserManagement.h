@@ -57,7 +57,8 @@ public:
         if(result.num_rows()==1)
         {
             userID=std::string(result.at(0)["ID"]);
-            server.send("success",key);
+            server.send(userID,key);
+            server.send(std::string(result.at(0)["NAME"]),key);
         }
         else server.send("fail",key);
 
