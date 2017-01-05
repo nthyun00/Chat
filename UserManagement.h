@@ -55,7 +55,8 @@ public:
     {
         std::ofstream log(logFile,std::ios::app);
         time_t nowTime=time(NULL);
-        log<<ctime(&nowTime)<<" : "<<param<<std::endl;
+        std::string timeString(ctime(&nowTime));
+        log<<timeString.substr(0,timeString.length()-1)<<" : "<<param<<std::endl;
         log.close();
     }
     UserManagement& login() //send userdata
