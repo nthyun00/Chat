@@ -3,7 +3,6 @@
 #include <mysql++/mysql++.h>
 #include <mysql++/result.h>
 #include <signal.h>
-#include <vector>
 
 using namespace std;
 

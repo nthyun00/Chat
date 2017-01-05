@@ -5,6 +5,7 @@
 #include <mysql++/mysql++.h>
 #include <mysql++/result.h>
 #include <vector>
+#include <stdlib.h>
 
 class UserManagement        //edit key
 {
@@ -205,6 +206,7 @@ public:
         std::vector<std::string> invite;  
         roomname=server.receive(key);
         std::string tmp;
+        invite.push_back(userID);
         while(1)
         {
             tmp=server.receive(key);
@@ -237,6 +239,11 @@ public:
             query<<"update userdata set chatList='"+list1+"' where ID='"+tmp+"'";
             result=query.store();
         }
+        char buf[10];
+        sprintf(buf,"%d",roomNumber);
+        query<<"create table chatroom.room"+std::string(buf)+" (date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
+        query.store();
+
         return *this;
     }
     UserManagement& myChatList()    //send num //edit need name send
@@ -252,7 +259,7 @@ public:
             server.send(tmp,key);
         server.send("end",key); //end flag //need edit
     }
-    UserManagement& outChatRoom()
+    UserManagement& outChatRoom()   //T.T need edit
     {
         if(userID.length()==0)  
             throw end;

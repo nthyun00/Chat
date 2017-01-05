@@ -79,13 +79,17 @@ int main(int argc,char** argv)
     try
     {
         ClientTcpSocket* client=new ClientTcpSocket;
+        /*adduser(*client,"afwes","afdsafsd","adsfd");
+        adduser(*client,"shangus","fewaaef","a");
+        adduser(*client,"gwear","greagewa","sh");*/
+
+
         login(*client,"a","b");
-        /*vector<string> a;
+        vector<string> a;
         a.push_back("afwes");
         a.push_back("shangus");
-        a.push_back("b");
         
-        makeChatRoom(*client,"ro1h",a);*/
+        makeChatRoom(*client,"ro1h",a);
 
         //printFriendList(*client);
         //addFriend(*client,"afwes");
