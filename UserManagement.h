@@ -71,32 +71,44 @@ public:
         {
             userID=std::string(result.at(0)["ID"]);
             server.send(std::string(result.at(0)["NAME"]),key);
-            writeLog(userID+" login success");
+            writeLog("ID("+userID+") login success");
         }
         else 
         {
             server.send("fail",key);
-            writeLog("input "+id+", login fail");
+            writeLog("ID("+id+") login fail");
         }
         return *this;
     }
     UserManagement& logout()
     {
+        writeLog("try logout ID("+userID+")");
         if(userID.length()==0)  
             throw end;
         userID="";
         server.send("logout seccess",key);
+        writeLog("logout success ID("+userID+")");
     }
     UserManagement& IDoverlapCheck()  //
     {
         std::string id=server.receive(key);
+
+        writeLog("request ID overlap check ID("+id+")");
+
         if(id.length()<5||id.length()>20)
             throw "ID length error";
         query<<"select ID from userdata where ID='"+id+"'";
         result=query.store();
         if(result.num_rows()==0)
+        {
             server.send("success",key);
-        else server.send("ID OverLap!",key); 
+            writeLog("ID overlap check ID("+id+") success");
+        }
+        else
+        { 
+            server.send("ID OverLap!",key); 
+            writeLog("ID overlap check ID("+id+") fail");
+        }
 
         return *this;
     }
