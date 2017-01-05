@@ -284,6 +284,14 @@ public:
         query<<"select memberList from roomnumber where number='"+roomNumber+"'";
         result=query.store();
         array=list2array(std::string(result.at(0)[0]));
+        if(array.size()==1)
+        {
+            query<<"delete from roomnumber where number='"+roomNumber+"'";
+            query.store();
+            query<<"drop table chatroom.room"+roomNumber;
+            query.store();
+        }
+
         list.clear();
         for(std::string tmp:array)
         {
@@ -295,6 +303,8 @@ public:
         result=query.store();
 
         //add need  send signal to chating server
+
+        return *this;
     }
 };
 
