@@ -78,7 +78,7 @@ public:
         query<<"select ID from userdata where ID='"+id+"'";
         result=query.store();
         if(result.num_rows()==0)
-            server.send("sucecss",key);
+            server.send("success",key);
         else server.send("ID OverLap!",key); 
 
         return *this;
@@ -99,7 +99,7 @@ public:
                 throw "PW length error";
             query<<"insert into userdata(ID,PW,NAME,_) values('"+id+"',password('"+pw+"'),'"+name+"','"+pw+"')";
             result=query.store();
-            server.send("sucecss",key);
+            server.send("success",key);
         }
         catch(mysqlpp::BadQuery& e)
         {

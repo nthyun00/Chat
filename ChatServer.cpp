@@ -49,6 +49,8 @@ int main(int argc,char** argv)  //
                         user.myChatList();
                     else if(uuid==10)
                         user.outChatRoom();
+                    else if(uuid==11)
+                        user.IDoverlapCheck();
                     /*else //echo
                     {
                         pid_t pid1=fork();
