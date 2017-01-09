@@ -169,9 +169,9 @@ public:
     {
         std::string searchID=server.receive(key);
 
-        query<<"select friendsList from userdata where ID='"+userID+"'";
+        /*query<<"select friendsList from userdata where ID='"+userID+"'";
         result=query.store();
-        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));
+        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));*/
         /*for(int i=0;i<result.num_rows();i++)
         {
             server.send(std::string(result.at(i)["ID"]),key);
@@ -182,14 +182,14 @@ public:
 
         if(result.num_rows()==1)
         {
-            for(std::string tmp:array)
+            /*for(std::string tmp:array)
             {
                 if(tmp==searchID)
                 {
                     server.send("Already a friend",key);
                     return *this;
                 }
-            }
+            }*/
             server.send(std::string(result.at(0)["ID"]),key);
             server.send(std::string(result.at(0)["NAME"]),key);
         }
