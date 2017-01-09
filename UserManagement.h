@@ -137,7 +137,7 @@ public:
                 throw end;
                 //server.send("ID OverLap!",key);
         }
-        std::cout<<"a"<<std::endl;
+        //std::cout<<"a"<<std::endl;
         return *this;
     }
     UserManagement& withdraw()
@@ -168,14 +168,36 @@ public:
     UserManagement& searchID()
     {
         std::string searchID=server.receive(key);
-        query<<"select * from userdata where ID regexp '"+searchID+"'";
+
+        query<<"select friendsList from userdata where ID='"+userID+"'";
         result=query.store();
-        for(int i=0;i<result.num_rows();i++)
+        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));
+        /*for(int i=0;i<result.num_rows();i++)
         {
             server.send(std::string(result.at(i)["ID"]),key);
             server.send(std::string(result.at(i)["NAME"]),key);
+        }*/
+        query<<"select * from userdata where ID = '"+searchID+"'"; //regexp
+        result=query.store();
+
+        if(result.num_rows()==1)
+        {
+            for(std::string tmp:array)
+            {
+                if(tmp==searchID)
+                {
+                    server.send("Already a friend",key);
+                    return *this;
+                }
+            }
+            server.send(std::string(result.at(0)["ID"]),key);
+            server.send(std::string(result.at(0)["NAME"]),key);
         }
-        server.send("end",key); //end flag //edit need
+        else
+        {
+            server.send("not Find!",key);
+        }
+        //server.send("end",key); //end flag //edit need
 
         return *this;
     }
