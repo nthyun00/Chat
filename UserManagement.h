@@ -65,24 +65,25 @@ public:
             throw end;
         std::string id=server.receive(key);
         std::string pw=server.receive(key);
+        writeLog("login request ID("+id+")");
         query<<"select * from userdata where ID='"+id+"' and PW=password('"+pw+"')";
         result=query.store();
         if(result.num_rows()==1)
         {
             userID=std::string(result.at(0)["ID"]);
             server.send(std::string(result.at(0)["NAME"]),key);
-            writeLog("ID("+userID+") login success");
+            writeLog("login success ID("+userID+") ");
         }
         else 
         {
             server.send("fail",key);
-            writeLog("ID("+id+") login fail");
+            writeLog("login fail ID("+id+") ");
         }
         return *this;
     }
     UserManagement& logout()
     {
-        writeLog("try logout ID("+userID+")");
+        writeLog("logout request ID("+userID+")");
         if(userID.length()==0)  
             throw end;
         userID="";
@@ -102,12 +103,12 @@ public:
         if(result.num_rows()==0)
         {
             server.send("success",key);
-            writeLog("ID overlap check ID("+id+") success");
+            writeLog("ID overlap check success ID("+id+") ");
         }
         else
         { 
             server.send("ID OverLap!",key); 
-            writeLog("ID overlap check ID("+id+") fail");
+            writeLog("ID overlap check fail ID("+id+") ");
         }
 
         return *this;
@@ -120,24 +121,21 @@ public:
         std::string id=server.receive(key);
         std::string pw=server.receive(key);
         std::string name=server.receive(key);
+        writeLog("join request ID("+id+")");
         try
         {
-            if(id.length()<5||id.length()>20)
-                throw "ID length error";
-            if(pw.length()<5||pw.length()>20)
-                throw "PW length error";
+            if(id.length()<5||id.length()>20||pw.length()<5||pw.length()>20)
+                throw end;
             query<<"insert into userdata(ID,PW,NAME,_) values('"+id+"',password('"+pw+"'),'"+name+"','"+pw+"')";
             result=query.store();
             server.send("success",key);
+            writeLog("join success ID("+id+")");
         }
         catch(mysqlpp::BadQuery& e)
         {
-            if(e.errnum()==1062)
-                server.send("ID OverLap!",key);
-        }
-        catch(const char* e)
-        {
-            server.send(std::string(e),key);
+            if(e.errnum()==1062)    //ID OverLap
+                throw end;
+                //server.send("ID OverLap!",key);
         }
         std::cout<<"a"<<std::endl;
         return *this;
@@ -148,15 +146,21 @@ public:
             throw end;
 
         std::string pw=server.receive(key);
+        writeLog("withdraw request ID("+userID+")");
         query<<"select * from userdata where ID='"+userID+"' and PW=password('"+pw+"')";
         result=query.store();
         if(result.num_rows()==0)
+        {
             server.send("PW different",key);
+            writeLog("withdraw fail ID("+userID+")");
+        }
         else
         {
             query<<"delete from userdata where ID='"+userID+"' and PW=password('"+pw+"')";
             result=query.store();
+            userID="";
             server.send("success",key);
+            writeLog("withdraw success ID("+userID+")");
         }
 
         return *this;
@@ -167,7 +171,10 @@ public:
         query<<"select * from userdata where ID regexp '"+searchID+"'";
         result=query.store();
         for(int i=0;i<result.num_rows();i++)
+        {
             server.send(std::string(result.at(i)["ID"]),key);
+            server.send(std::string(result.at(i)["NAME"]),key);
+        }
         server.send("end",key); //end flag //edit need
 
         return *this;
@@ -199,9 +206,15 @@ public:
         query<<"select friendsList from userdata where ID='"+userID+"'";
         result=query.store();
 
-        std::vector<std::string> array=list2array(std::string(result.at(0)[0]));
+        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));
         for(std::string tmp:array)
+        {
+            query<<"select NAME from userdata where ID='"+tmp+"'";
+            result=query.store();
+
             server.send(tmp,key);
+            server.send(std::string(result.at(0)["NAME"]),key);
+        }
         server.send("end",key); //end flag //need edit
 
         return *this;
@@ -247,12 +260,17 @@ public:
         for(std::string tmp:invite)
         list+=tmp+";";
 
-        query<<"insert into roomnumber(name,memberlist) values('"+roomname+"','"+list+"')";
-        result=query.store();
+        srand(time(NULL)*getpid());
+        int checkValue=rand()%99999+1;
+        query<<"insert into roomnumber (name,memberlist,`check`) values ('"+roomname+"','"+list+"','"+std::to_string(checkValue)+"')";
+        query.store();
 
-        query<<"select number from roomnumber where name='"+roomname+"'";
+        query<<"select number from roomnumber where `check`='"+std::to_string(checkValue)+"'";
         result=query.store();
-        int roomNumber=result.at(result.num_rows()-1)[0];
+        int roomNumber=result.at(result.num_rows()-1)["number"];
+
+        query<<"update roomnumber set `check`='0' where `check`='"+std::to_string(checkValue)+"'";
+        result=query.store();
 
         for(std::string tmp:invite)
         {
@@ -270,8 +288,13 @@ public:
         }
         char buf[10];
         sprintf(buf,"%d",roomNumber);
-        query<<"create table chatroom.room"+std::string(buf)+" (date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
+        query<<"create table chatroom.room"+std::string(buf)+" (number int primary key auto_increment ,date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
         query.store();
+
+        //trigger
+        /*query<<"delimiter !";
+        query.store();
+        query<<"create trigger test after update on roomtrigger"+roomNumber+" for each row begin set";*/
 
         return *this;
     }
@@ -313,13 +336,13 @@ public:
         query<<"select memberList from roomnumber where number='"+roomNumber+"'";
         result=query.store();
         array=list2array(std::string(result.at(0)[0]));
-        if(array.size()==1)
+        /*if(array.size()==1)
         {
             query<<"delete from roomnumber where number='"+roomNumber+"'";
             query.store();
             query<<"drop table chatroom.room"+roomNumber;
             query.store();
-        }
+        }*/
 
         list.clear();
         for(std::string tmp:array)

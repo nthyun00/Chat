@@ -6,10 +6,13 @@
 
 using namespace std;
 
+const int key=23;
+
 void childHandler(int tmp)
 {
     wait(0);
 }
+
 
 int main(int argc,char** argv)  //
 {
@@ -23,9 +26,25 @@ int main(int argc,char** argv)  //
             if((pid=fork())==0)
             {
                 cout<<"connect!"<<endl;
-                int roomNumber=atoi(server.receive(23).c_str());
                 string userID=server.receive(23);
-                
+                int roomNumber=atoi(server.receive(23).c_str());
+        
+                mysqlpp::Connection con("chatroom","10.156.145.48","root","shangus1",3306);
+                mysqlpp::Query query=con.query();
+                mysqlpp::StoreQueryResult result;
+
+                query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
+                result=query.store();
+                string userName=result.at(0)["NAME"];
+
+                {//text receive
+                    string msg=server.receive(key);
+                    query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
+                    query.store();
+                }
+                {//text alarm
+
+                }
                 
             }
         }
@@ -38,11 +57,6 @@ int main(int argc,char** argv)  //
     catch(const char* e)
     {
         perror(e);
-    }
-    catch(UserManagement::Flag e)
-    {
-        if(e==UserManagement::end)
-            exit(1);
     }
     return 0;
 }
