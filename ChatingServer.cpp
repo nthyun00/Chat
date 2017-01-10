@@ -33,9 +33,10 @@ int main(int argc,char** argv)  //
                 mysqlpp::Query query=con.query();
                 mysqlpp::StoreQueryResult result;
 
-                query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
+                //error
+                /*query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
                 result=query.store();
-                string userName=result.at(0)["NAME"];
+                string userName=result.at(0)["NAME"];*/
 
                 {//text receive
                     string msg=server.receive(key);
@@ -43,8 +44,31 @@ int main(int argc,char** argv)  //
                     query.store();
                 }
                 {//text alarm
+                    int nowmsg;
+                    query<<"select nowmsg from chatserver.roomnumber";
+                    result=query.store();
+                    nowmsg=result.at(0)["nowmsg"];
+                    while(1)
+                    {
+                        query<<"select nowmsg from chatserver.roomnumber";
+                        result=query.store();
+                        if(nowmsg!=atoi(result.at(0)["nowmsg"]))
+                        {
+                            nowmsg++;
+                            query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
+                            result=query.store();
+                            if(result.at(0)["sender"]!=userID)
+                            {
+                                server.send(string(result.at(0)["date"]),key);
+                                server.send(string(result.at(0)["sender"]),key);
+                                server.send(string(result.at(0)["msg"]),key);
+                            }
+                        }
+                    }
+
 
                 }
+                
                 
             }
         }

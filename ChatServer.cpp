@@ -16,7 +16,7 @@ int main(int argc,char** argv)  //
     signal(SIGCHLD,childHandler);
     try
     {
-        ServerTcpSocket server;
+        ServerTcpSocket server(33333);
         while(server.accept()>0)
         {
             pid_t pid;

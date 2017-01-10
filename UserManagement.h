@@ -321,15 +321,19 @@ public:
             query<<"update userdata set chatList='"+list1+"' where ID='"+tmp+"'";
             result=query.store();
         }
-        char buf[10];
-        sprintf(buf,"%d",roomNumber);
-        query<<"create table chatroom.room"+std::string(buf)+" (number int primary key auto_increment ,date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
+        query<<"create table chatroom.room"+std::to_string(roomNumber)+" (number int primary key auto_increment ,date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
         query.store();
 
         //trigger
-        /*query<<"delimiter !";
+        //query<<"delimiter !";
+        //query.store();
+        query<<"create trigger trigger"+std::to_string(roomNumber)+" after update on chatroom.room"+std::to_string(roomNumber)+" for each row"
+                " begin "
+                "update roomnumber set nowmsg=nowmsg+1 where number='"+std::to_string(roomNumber)+"'"
+                " end " ;
         query.store();
-        query<<"create trigger test after update on roomtrigger"+roomNumber+" for each row begin set";*/
+        //query<<"delimiter ;";
+        //query.store();
 
         return *this;
     }
