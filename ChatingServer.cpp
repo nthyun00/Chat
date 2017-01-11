@@ -3,26 +3,31 @@
 #include <mysql++/result.h>
 #include <signal.h>
 #include <vector>
+#include <thread>
 
 using namespace std;
 
 const int key=23;
 
+
 void childHandler(int tmp)
 {
     wait(0);
 }
-
-void msgReceive()
+/*
+void msgReceive(ServerTcpSocket& server,mysqlpp::Query& query,mysqlpp::StoreQueryResult& result)
 {
-    string msg=server.receive(key);
-    query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
-    query.store();
+    while(1)
+    {
+        string msg=server.receive(key);
+        query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
+        query.store();
 
-    query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'"
-    query.store();
+        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'";
+        query.store();
+    }
 }
-void msgAlarm()
+void msgAlarm(ServerTcpSocket& server,mysqlpp::Query& query,mysqlpp::StoreQueryResult& result)
 {
     int nowmsg;
     query<<"select nowmsg from chatserver.roomnumber";
@@ -46,7 +51,7 @@ void msgAlarm()
         }
     }
 }
-
+*/
 int main(int argc,char** argv)  //
 {
     signal(SIGCHLD,childHandler);
@@ -59,34 +64,35 @@ int main(int argc,char** argv)  //
             if((pid=fork())==0)
             {
                 cout<<"connect!"<<endl;
-                string userID=server.receive(23);
-                int roomNumber=atoi(server.receive(23).c_str());
+                string userID=server.receive(key);
+                int roomNumber=atoi(server.receive(key).c_str());
         
                 mysqlpp::Connection con("chatroom","10.156.145.48","root","shangus1",3306);
                 mysqlpp::Query query=con.query();
                 mysqlpp::StoreQueryResult result;
 
-                //error
-                /*query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
-                result=query.store();
-                string userName=result.at(0)["NAME"];*/
+                pid_t pid1=fork();
+                if(pid1>0)
+                {
+                    while(1)
+                    {
+                        string msg=server.receive(key);
+                        query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
+                        query.store();
 
-                {//text receive
-                    string msg=server.receive(key);
-                    query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
-                    query.store();
-
-                    query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'"
-                    query.store();
+                        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'";
+                        query.store();
+                    }
                 }
-                {//text alarm
+                else if(pid1==0)
+                {
                     int nowmsg;
-                    query<<"select nowmsg from chatserver.roomnumber";
+                    query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                     result=query.store();
                     nowmsg=result.at(0)["nowmsg"];
                     while(1)
                     {
-                        query<<"select nowmsg from chatserver.roomnumber";
+                        query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                         result=query.store();
                         if(nowmsg!=atoi(result.at(0)["nowmsg"]))
                         {
@@ -101,10 +107,15 @@ int main(int argc,char** argv)  //
                             }
                         }
                     }
-
-
                 }
-                
+
+                //error
+                /*query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
+                result=query.store();
+                string userName=result.at(0)["NAME"];*/
+
+                //thread recv(msgReceive,server,query,result);
+                //thread send(msgAlarm,server,query,result);
                 
             }
         }
