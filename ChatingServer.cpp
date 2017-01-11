@@ -42,6 +42,8 @@ int main(int argc,char** argv)  //
                     string msg=server.receive(key);
                     query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
                     query.store();
+
+                    query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'"
                 }
                 {//text alarm
                     int nowmsg;

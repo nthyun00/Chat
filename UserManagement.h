@@ -327,11 +327,11 @@ public:
         //trigger
         //query<<"delimiter !";
         //query.store();
-        query<<"create trigger trigger"+std::to_string(roomNumber)+" after update on chatroom.room"+std::to_string(roomNumber)+" for each row"
+        /*query<<"create trigger trigger"+std::to_string(roomNumber)+" after update on chatroom.room"+std::to_string(roomNumber)+" for each row"
                 " begin "
                 "update roomnumber set nowmsg=nowmsg+1 where number='"+std::to_string(roomNumber)+"'"
                 " end " ;
-        query.store();
+        query.store();*/
         //query<<"delimiter ;";
         //query.store();
 
