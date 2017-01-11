@@ -83,12 +83,13 @@ public:
     }
     UserManagement& logout()
     {
+        std::string tmp=userID;
         writeLog("logout request ID("+userID+")");
         if(userID.length()==0)  
             throw end;
         userID="";
         //server.send("logout seccess",key);
-        writeLog("logout success ID("+userID+")");
+        writeLog("logout success ID("+tmp+")");
     }
     UserManagement& IDoverlapCheck()  //
     {
@@ -147,6 +148,8 @@ public:
 
         std::string pw=server.receive(key);
         writeLog("withdraw request ID("+userID+")");
+
+
         query<<"select * from userdata where ID='"+userID+"' and PW=password('"+pw+"')";
         result=query.store();
         if(result.num_rows()==0)
@@ -156,12 +159,30 @@ public:
         }
         else
         {
+            query<<"select friendList from userdata where ID='"+userID+"'";
+            result=query.store();
+            std::vector<std::string> friendArray=list2array(std::string(result.at(0)["friendList"]));
+            for(std::string friendID: friendArray)
+            {
+                query<<"select friendList from userdata where ID='"+friendID+"'";
+                result=query.store();
+                std::vector<std::string> array=list2array(std::string(result.at(0)["friendList"]));
+                std::string list;
+                for(std::string tmp:array)
+                    if(tmp!=userID)
+                        list+=tmp+";";
+                query<<"update userdata set friendsList='"+list+"' where ID='"+friendID+"'";
+                query.store();
+            }
+
             query<<"delete from userdata where ID='"+userID+"' and PW=password('"+pw+"')";
             result=query.store();
             userID="";
             server.send("success",key);
             writeLog("withdraw success ID("+userID+")");
         }
+
+        
 
         return *this;
     }
@@ -211,15 +232,30 @@ public:
 
         std::string friendsID=server.receive(key);
         writeLog("addFriend request ID("+userID+") friendID("+friendsID+")");
+
         query<<"select friendsList from userdata where ID='"+userID+"'";
         result=query.store();
-        std::vector<std::string> array=list2array(std::string(result.at(0)[0]));
+
+        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));
         array.push_back(friendsID);
 
         std::string list;
         for(std::string tmp:array)
             list+=tmp+";";
         query<<"update userdata set friendsList='"+list+"' where ID='"+userID+"'";
+        result=query.store();
+//////////////////////////////////////////////////////////////////
+        query<<"select friendsList from userdata where ID='"+friendsID+"'";
+        result=query.store();
+
+        array.clear();
+        array=list2array(std::string(result.at(0)["friendsList"]));
+        array.push_back(userID);
+
+        list="";
+        for(std::string tmp:array)
+            list+=tmp+";";
+        query<<"update userdata set friendsList='"+list+"' where ID='"+friendsID+"'";
         result=query.store();
 
         writeLog("addFriend success ID("+userID+") friendID("+friendsID+")");
@@ -263,11 +299,9 @@ public:
         
         std::string list;
         for(std::string tmp:array)
-        {
-            if(tmp==friendsID)
-                continue;
-            list+=tmp+";";
-        }
+            if(tmp!=friendsID)
+                list+=tmp+";";
+
         query<<"update userdata set friendsList='"+list+"' where ID='"+userID+"'";
         result=query.store();
         writeLog("deleteFriend success ID("+userID+") friendID("+friendsID+")");

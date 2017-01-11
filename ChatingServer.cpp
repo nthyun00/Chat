@@ -13,6 +13,39 @@ void childHandler(int tmp)
     wait(0);
 }
 
+void msgReceive()
+{
+    string msg=server.receive(key);
+    query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
+    query.store();
+
+    query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'"
+    query.store();
+}
+void msgAlarm()
+{
+    int nowmsg;
+    query<<"select nowmsg from chatserver.roomnumber";
+    result=query.store();
+    nowmsg=result.at(0)["nowmsg"];
+    while(1)
+    {
+        query<<"select nowmsg from chatserver.roomnumber";
+        result=query.store();
+        if(nowmsg!=atoi(result.at(0)["nowmsg"]))
+        {
+            nowmsg++;
+            query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
+            result=query.store();
+            if(result.at(0)["sender"]!=userID)
+            {
+                server.send(string(result.at(0)["date"]),key);
+                server.send(string(result.at(0)["sender"]),key);
+                server.send(string(result.at(0)["msg"]),key);
+            }
+        }
+    }
+}
 
 int main(int argc,char** argv)  //
 {
@@ -44,6 +77,7 @@ int main(int argc,char** argv)  //
                     query.store();
 
                     query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'"
+                    query.store();
                 }
                 {//text alarm
                     int nowmsg;
