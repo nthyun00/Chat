@@ -105,7 +105,7 @@ int main(int argc,char** argv)  //
                 writeLog("connect success room("+to_string(roomNumber)+") ID("+userID+")");
 
                 pid_t pid1=fork();
-                if(pid1>0)
+                if(pid1>0)  //parent
                 {
                     while(1)
                     {
@@ -121,7 +121,7 @@ int main(int argc,char** argv)  //
                     }
                     wait(0);
                 }
-                else if(pid1==0)
+                else if(pid1==0)    //child
                 {
                     int nowmsg;
                     query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
@@ -155,6 +155,7 @@ int main(int argc,char** argv)  //
                                 server.send(string(result.at(0)["msg"]),key);
                             }
                         }
+                        sleep(0.1);
                     }
                 }
 
