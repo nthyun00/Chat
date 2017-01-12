@@ -297,7 +297,7 @@ public:
             server.send(std::string(result.at(0)["NAME"]),key);
         }
         server.send("end!",key); //end flag //need edit
-        writeLog("friendsList seccess ID("+userID+")");
+        writeLog("friendsList success ID("+userID+")");
         return *this;
     }
     UserManagement& deleteFriend()
@@ -331,6 +331,10 @@ public:
         std::string roomname;
         std::vector<std::string> invite;  
         roomname=server.receive(key);
+
+        writeLog("makeChatRoom request ID("+userID+")");
+
+
         std::string tmp;
         invite.push_back(userID);
         while(1)
@@ -385,6 +389,8 @@ public:
         query.store();*/
         //query<<"delimiter ;";
         //query.store();
+
+        writeLog("makeChatRoom success ID("+userID+")");
 
         return *this;
     }
