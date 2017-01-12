@@ -30,41 +30,56 @@ void writeLog(string param,string logFile="../chatinglog.txt")
     log.close();
 }
 /*
-void msgReceive(ServerTcpSocket& server,mysqlpp::Query& query,mysqlpp::StoreQueryResult& result)
 {
     while(1)
-    {
-        string msg=server.receive(key);
-        query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
-        query.store();
+                    {
+                        string msg=server.receive(key);
 
-        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'";
-        query.store();
-    }
+                        writeLog("send room("+to_string(roomNumber)+") ID("+userID+")");
+
+                        query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
+                        query.store();
+
+                        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number="+to_string(roomNumber)+"";
+                        query.store();
+                    }
 }
-void msgAlarm(ServerTcpSocket& server,mysqlpp::Query& query,mysqlpp::StoreQueryResult& result)
 {
-    int nowmsg;
-    query<<"select nowmsg from chatserver.roomnumber";
-    result=query.store();
-    nowmsg=result.at(0)["nowmsg"];
-    while(1)
-    {
-        query<<"select nowmsg from chatserver.roomnumber";
-        result=query.store();
-        if(nowmsg!=atoi(result.at(0)["nowmsg"]))
-        {
-            nowmsg++;
-            query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
-            result=query.store();
-            if(result.at(0)["sender"]!=userID)
-            {
-                server.send(string(result.at(0)["date"]),key);
-                server.send(string(result.at(0)["sender"]),key);
-                server.send(string(result.at(0)["msg"]),key);
-            }
-        }
-    }
+int nowmsg;
+                    query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
+                    result=query.store();
+                    nowmsg=result.at(0)["nowmsg"];
+
+                    query<<"select * from room"+to_string(roomNumber);
+                    result=query.store();
+                    for(int i=0;i<result.num_rows();i++)
+                    {
+                        server.send(string(result.at(i)["date"]),key);
+                        server.send(string(result.at(i)["sender"]),key);
+                        server.send(string(result.at(i)["msg"]),key);
+                    }
+
+
+                    while(1)
+                    {
+                        query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
+                        result=query.store();
+
+                        if(nowmsg!=atoi(result.at(0)["nowmsg"]))
+                        {
+                            writeLog("receive room("+to_string(roomNumber)+") ID("+userID+")");
+                            nowmsg++;
+                            query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
+                            result=query.store();
+                            if(result.at(0)["sender"]!=userID)
+                            {
+                                server.send(string(result.at(0)["date"]),key);
+                                server.send(string(result.at(0)["sender"]),key);
+                                server.send(string(result.at(0)["msg"]),key);
+                            }
+                        }
+                        sleep(0.1);
+                    }
 }
 */
 int main(int argc,char** argv)  //
@@ -104,9 +119,8 @@ int main(int argc,char** argv)  //
 
                 writeLog("connect success room("+to_string(roomNumber)+") ID("+userID+")");
 
-                pid_t pid1=fork();
-                if(pid1>0)  //parent
-                {
+
+                thread recv([&](){
                     while(1)
                     {
                         string msg=server.receive(key);
@@ -119,9 +133,9 @@ int main(int argc,char** argv)  //
                         query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number="+to_string(roomNumber)+"";
                         query.store();
                     }
-                }
-                else if(pid1==0)    //child
-                {
+                });
+
+                thread send([&](){
                     int nowmsg;
                     query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                     result=query.store();
@@ -157,8 +171,10 @@ int main(int argc,char** argv)  //
                         }
                         sleep(0.1);
                     }
-                }
+                });
 
+                send.join();
+                recv.join();
                 //error
                 /*query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
                 result=query.store();
