@@ -14,11 +14,6 @@ const int key=23;
 
 void childHandler(int tmp)
 {
-    /*int status;
-    pid_t pid;
-
-    while((pid=waitpid(-1,&status,WNOHANG))>0)
-        ;*/
     wait(0);
 }
 void writeLog(string param,string logFile="../chatinglog.txt")
@@ -29,59 +24,6 @@ void writeLog(string param,string logFile="../chatinglog.txt")
     log<<timeString.substr(0,timeString.length()-1)<<" : "<<param<<std::endl;
     log.close();
 }
-/*
-{
-    while(1)
-                    {
-                        string msg=server.receive(key);
-
-                        writeLog("send room("+to_string(roomNumber)+") ID("+userID+")");
-
-                        query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
-                        query.store();
-
-                        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number="+to_string(roomNumber)+"";
-                        query.store();
-                    }
-}
-{
-int nowmsg;
-                    query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
-                    result=query.store();
-                    nowmsg=result.at(0)["nowmsg"];
-
-                    query<<"select * from room"+to_string(roomNumber);
-                    result=query.store();
-                    for(int i=0;i<result.num_rows();i++)
-                    {
-                        server.send(string(result.at(i)["date"]),key);
-                        server.send(string(result.at(i)["sender"]),key);
-                        server.send(string(result.at(i)["msg"]),key);
-                    }
-
-
-                    while(1)
-                    {
-                        query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
-                        result=query.store();
-
-                        if(nowmsg!=atoi(result.at(0)["nowmsg"]))
-                        {
-                            writeLog("receive room("+to_string(roomNumber)+") ID("+userID+")");
-                            nowmsg++;
-                            query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
-                            result=query.store();
-                            if(result.at(0)["sender"]!=userID)
-                            {
-                                server.send(string(result.at(0)["date"]),key);
-                                server.send(string(result.at(0)["sender"]),key);
-                                server.send(string(result.at(0)["msg"]),key);
-                            }
-                        }
-                        sleep(0.1);
-                    }
-}
-*/
 int main(int argc,char** argv)  //
 {
     signal(SIGCHLD,childHandler);
@@ -175,14 +117,6 @@ int main(int argc,char** argv)  //
 
                 send.join();
                 recv.join();
-                //error
-                /*query<<"select NAME from room"+to_string(roomNumber)+" where ID="+userID;
-                result=query.store();
-                string userName=result.at(0)["NAME"];*/
-
-                //thread recv(msgReceive,server,query,result);
-                //thread send(msgAlarm,server,query,result);
-                
             }
         }
     } 

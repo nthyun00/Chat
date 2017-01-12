@@ -11,7 +11,7 @@ void childHandler(int tmp)
     wait(0);
 }
 
-int main(int argc,char** argv)  //
+int main(int argc,char** argv)  
 {
     signal(SIGCHLD,childHandler);
     try
@@ -27,21 +27,21 @@ int main(int argc,char** argv)  //
                 while(1)
                 {
                     int uuid=atoi(server.receive(23).c_str());
-                    if(uuid==0)//login
+                    if(uuid==0)
                         user.login();
-                    else if(uuid==1)//add user
+                    else if(uuid==1)
                         user.join();
-                    else if(uuid==2)//delete user   //edit need //secure
+                    else if(uuid==2)
                         user.withdraw();
-                    else if(uuid==3)//search ID -> send List
+                    else if(uuid==3)
                         user.searchID();
-                    else if(uuid==4)//add friends   //edit need //nothing account
+                    else if(uuid==4)
                         user.addFriend();
-                    else if(uuid==5)//friends list ->vector ->send
+                    else if(uuid==5)
                         user.myFriendsList();
-                    else if(uuid==6)//delete friend
+                    else if(uuid==6)
                         user.deleteFriend();
-                    else if(uuid==7)//make chatroom
+                    else if(uuid==7)
                         user.makeChatRoom();
                     else if(uuid==8)
                         user.logout();
@@ -51,28 +51,9 @@ int main(int argc,char** argv)  //
                         user.outChatRoom();
                     else if(uuid==11)
                         user.IDoverlapCheck();
-                    /*else //echo
-                    {
-                        pid_t pid1=fork();
-                        string tmp;
-                        while(1)
-                        {
-                            if(pid1>0)
-                            {
-                                tmp=server.receive(key);
-                                cout<<tmp<<endl;
-                            }
-                            else
-                            {
-                                cin>>tmp;
-                                server.send(tmp,key);
-                            }
-                        }
-                    }*/
                 }
                 
             }
-            //wait(0);
         }
     } 
     catch (mysqlpp::BadQuery& e) 

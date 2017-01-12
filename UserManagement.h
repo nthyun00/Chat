@@ -10,7 +10,7 @@
 #include <time.h>
 #include <fstream>
 
-class UserManagement        //edit key
+class UserManagement       
 {
 private:
     const int key=23;
@@ -33,8 +33,6 @@ public:
                     query(con.query()) ,
                     logFile(logFile)
     {
-        //con.connect(DBname.c_str(),IP.c_str(),id.c_str(),pw.c_str(),3306);
-        //query=con.query();
     }
     static std::vector<std::string> list2array(std::string list,char plot=';')
     {
@@ -97,10 +95,9 @@ public:
         if(userID.length()==0)  
             throw end;
         userID="";
-        //server.send("logout seccess",key);
         writeLog("logout success ID("+tmp+")");
     }
-    UserManagement& IDoverlapCheck()  //
+    UserManagement& IDoverlapCheck()  
     {
         std::string id=server.receive(key);
 
@@ -123,7 +120,7 @@ public:
 
         return *this;
     }
-    UserManagement& join()  //IDoverlapCheck edit
+    UserManagement& join()
     {
         if(userID.length()!=0)  
             throw end;
@@ -144,11 +141,9 @@ public:
         }
         catch(mysqlpp::BadQuery& e)
         {
-            if(e.errnum()==1062)    //ID OverLap
+            if(e.errnum()==1062)    
                 throw end;
-                //server.send("ID OverLap!",key);
         }
-        //std::cout<<"a"<<std::endl;
         return *this;
     }
     UserManagement& withdraw()  
@@ -169,8 +164,6 @@ public:
         }
         else
         {
-            //query<<"select friendList from userdata where ID='"+userID+"'";
-            //result=query.store();
             std::vector<std::string> friendArray=list2array(std::string(result.at(0)["friendsList"]));
             for(std::string friendID: friendArray)
             {
@@ -201,27 +194,11 @@ public:
 
         std::string searchID=server.receive(key);
         writeLog("searchID request ID("+userID+") friendID("+searchID+")");
-        /*query<<"select friendsList from userdata where ID='"+userID+"'";
-        result=query.store();
-        std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));*/
-        /*for(int i=0;i<result.num_rows();i++)
-        {
-            server.send(std::string(result.at(i)["ID"]),key);
-            server.send(std::string(result.at(i)["NAME"]),key);
-        }*/
         query<<"select * from userdata where ID = '"+searchID+"'"; //regexp
         result=query.store();
 
         if(result.num_rows()==1)
         {
-            /*for(std::string tmp:array)
-            {
-                if(tmp==searchID)
-                {
-                    server.send("Already a friend",key);
-                    return *this;
-                }
-            }*/
             server.send(std::string(result.at(0)["ID"]),key);
             server.send(std::string(result.at(0)["NAME"]),key);
             writeLog("searchID success ID("+userID+") friendID("+searchID+")");
@@ -231,7 +208,6 @@ public:
             server.send("not Find!",key);
             writeLog("searchID fail ID("+userID+") friendID("+searchID+")");
         }
-        //server.send("end",key); //end flag //edit need
 
         return *this;
     }
@@ -277,7 +253,7 @@ public:
 
         return *this;
     }
-    UserManagement& myFriendsList() //send ID //edit need name send
+    UserManagement& myFriendsList()
     {
         if(userID.length()==0)  
             throw end;
@@ -296,7 +272,7 @@ public:
             server.send(tmp,key);
             server.send(std::string(result.at(0)["NAME"]),key);
         }
-        server.send("end!",key); //end flag //need edit
+        server.send("end!",key); 
         writeLog("friendsList success ID("+userID+")");
         return *this;
     }
@@ -340,7 +316,7 @@ public:
         while(1)
         {
             tmp=server.receive(key);
-            if(tmp=="end!")//end flag //need edit
+            if(tmp=="end!")
                 break;
             invite.push_back(tmp);
         }
@@ -379,22 +355,11 @@ public:
         query<<"create table chatroom.room"+std::to_string(roomNumber)+" (number int primary key auto_increment ,date timestamp not null,sender varchar(20) not null,msg varchar(200) not null)";
         query.store();
 
-        //trigger
-        //query<<"delimiter !";
-        //query.store();
-        /*query<<"create trigger trigger"+std::to_string(roomNumber)+" after update on chatroom.room"+std::to_string(roomNumber)+" for each row"
-                " begin "
-                "update roomnumber set nowmsg=nowmsg+1 where number='"+std::to_string(roomNumber)+"'"
-                " end " ;
-        query.store();*/
-        //query<<"delimiter ;";
-        //query.store();
-
         writeLog("makeChatRoom success ID("+userID+")");
 
         return *this;
     }
-    UserManagement& myChatList()    //send num //edit need name send
+    UserManagement& myChatList()    
     {
         if(userID.length()==0)  
             throw end;
@@ -413,12 +378,12 @@ public:
             server.send(tmp,key);
             server.send(std::string(result.at(0)["name"]),key);
         }
-        server.send("end!",key); //end flag //need edit
+        server.send("end!",key); 
 
         writeLog("chatList success ID("+userID+")");
         return *this;
     }
-    UserManagement& outChatRoom()   //T.T need edit
+    UserManagement& outChatRoom()  
     {
         if(userID.length()==0)  
             throw end;
@@ -445,13 +410,6 @@ public:
         query<<"select memberList from roomnumber where number='"+roomNumber+"'";
         result=query.store();
         array=list2array(std::string(result.at(0)[0]));
-        /*if(array.size()==1)
-        {
-            query<<"delete from roomnumber where number='"+roomNumber+"'";
-            query.store();
-            query<<"drop table chatroom.room"+roomNumber;
-            query.store();
-        }*/
 
         list.clear();
         for(std::string tmp:array)
@@ -462,8 +420,6 @@ public:
         }
         query<<"update roomnumber set chatList='"+list+"' where number='"+roomNumber+"'";
         result=query.store();
-
-        //add need  send signal to chating server
         
         writeLog("outChatRoom success ID("+userID+") roomNumber("+roomNumber+")");
 
