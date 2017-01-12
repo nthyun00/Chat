@@ -102,6 +102,7 @@ int main(int argc,char** argv)  //
                 if(check==false)
                     exit(0);
 
+                writeLog("connect success room("+to_string(roomNumber)+") ID("+userID+")");
 
                 pid_t pid1=fork();
                 if(pid1>0)
