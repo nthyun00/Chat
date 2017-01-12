@@ -116,7 +116,7 @@ int main(int argc,char** argv)  //
                         query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
                         query.store();
 
-                        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number='"+to_string(roomNumber)+"'";
+                        query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number="+to_string(roomNumber)+"";
                         query.store();
                     }
                     wait(0);
@@ -142,6 +142,7 @@ int main(int argc,char** argv)  //
                     {
                         query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                         result=query.store();
+
                         if(nowmsg!=atoi(result.at(0)["nowmsg"]))
                         {
                             writeLog("receive room("+to_string(roomNumber)+") ID("+userID+")");
