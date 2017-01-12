@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <vector>
 #include <thread>
+#include <fstream>
 
 using namespace std;
 
@@ -13,6 +14,14 @@ const int key=23;
 void childHandler(int tmp)
 {
     wait(0);
+}
+void writeLog(string param,string logFile="../chatinglog.txt")
+{
+    ofstream log(logFile,ios::app);
+    time_t nowTime=time(NULL);
+    string timeString(ctime(&nowTime));
+    log<<timeString.substr(0,timeString.length()-1)<<" : "<<param<<std::endl;
+    log.close();
 }
 /*
 void msgReceive(ServerTcpSocket& server,mysqlpp::Query& query,mysqlpp::StoreQueryResult& result)
@@ -63,9 +72,10 @@ int main(int argc,char** argv)  //
             pid_t pid;
             if((pid=fork())==0)
             {
-                cout<<"connect!"<<endl;
+                cout<<"connectRoom!"<<endl;
                 string userID=server.receive(key);
                 int roomNumber=atoi(server.receive(key).c_str());
+                writeLog("connect room("+to_string(roomNumber)+") ID("+userID+")");
         
                 mysqlpp::Connection con("chatroom","10.156.145.48","root","shangus1",3306);
                 mysqlpp::Query query=con.query();
@@ -77,6 +87,9 @@ int main(int argc,char** argv)  //
                     while(1)
                     {
                         string msg=server.receive(key);
+
+                        writeLog("send room("+to_string(roomNumber)+") ID("+userID+")");
+
                         query<<"insert into room"+to_string(roomNumber)+"(sender,msg) values('"+userID+"','"+msg+"')";
                         query.store();
 
@@ -90,12 +103,24 @@ int main(int argc,char** argv)  //
                     query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                     result=query.store();
                     nowmsg=result.at(0)["nowmsg"];
+
+                    query<<"select * from room"+to_string(roomNumber);
+                    result=query.store();
+                    for(int i=0;i<result.num_rows();i++)
+                    {
+                        server.send(string(result.at(i)["date"]),key);
+                        server.send(string(result.at(i)["sender"]),key);
+                        server.send(string(result.at(i)["msg"]),key);
+                    }
+
+
                     while(1)
                     {
                         query<<"select nowmsg from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
                         result=query.store();
                         if(nowmsg!=atoi(result.at(0)["nowmsg"]))
                         {
+                            writeLog("receive room("+to_string(roomNumber)+") ID("+userID+")");
                             nowmsg++;
                             query<<"select * from room"+to_string(roomNumber)+" where number='"+to_string(nowmsg)+"'";
                             result=query.store();
