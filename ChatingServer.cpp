@@ -166,10 +166,12 @@ int main(int argc,char** argv)  //
     {
         cerr << "BadQuery : " << e.what() << endl;
         cerr<<e.errnum()<<endl;
+        cout<<"room"<<endl;
     }
     catch(const char* e)
     {
         perror(e);
+        cout<<"room"<<endl;
     }
     return 0;
 }
