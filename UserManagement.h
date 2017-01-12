@@ -5,6 +5,7 @@
 #include <mysql++/mysql++.h>
 #include <mysql++/result.h>
 #include <vector>
+#include <algorithm>
 #include <stdlib.h>
 #include <time.h>
 #include <fstream>
@@ -50,6 +51,14 @@ public:
             else tmp.push_back(list.at(i));
         }
         return ret;
+    }
+    static int specialCharCheck(std::string param,std::string plot="")
+    {
+        for(char tmp:param)
+            for(char plotTmp:plot)
+                if(tmp==plotTmp)
+                    return false;
+        return true;
     }
     void writeLog(std::string param)
     {
@@ -127,6 +136,7 @@ public:
         {
             if(id.length()<5||id.length()>20||pw.length()<5||pw.length()>20)
                 throw end;
+            if(specialCharCheck(id,""))
             query<<"insert into userdata(ID,PW,NAME,_) values('"+id+"',password('"+pw+"'),'"+name+"','"+pw+"')";
             result=query.store();
             server.send("success",key);
@@ -225,7 +235,7 @@ public:
 
         return *this;
     }
-    UserManagement& addFriend() //overlap check need!
+    UserManagement& addFriend() 
     {
         if(userID.length()==0)  
             throw end;
@@ -238,6 +248,8 @@ public:
 
         std::vector<std::string> array=list2array(std::string(result.at(0)["friendsList"]));
         array.push_back(friendsID);
+        std::sort(array.begin(),array.end());
+        std::unique(array.begin(),array.end());
 
         std::string list;
         for(std::string tmp:array)
@@ -252,6 +264,8 @@ public:
         array.clear();
         array=list2array(std::string(result.at(0)["friendsList"]));
         array.push_back(userID);
+        std::sort(array.begin(),array.end());
+        std::unique(array.begin(),array.end());
 
         list="";
         for(std::string tmp:array)
@@ -349,6 +363,8 @@ public:
 
             std::vector<std::string> array=list2array(std::string(result.at(0)[0]));
             array.push_back(std::to_string(roomNumber));
+            std::sort(array.begin(),array.end());
+            std::unique(array.begin(),array.end());
 
             std::string list1;
             for(std::string tmp1:array)
@@ -387,6 +403,7 @@ public:
         {
             query<<"select name from roomnumber where number='"+tmp+"'";
             result=query.store();
+
             server.send(tmp,key);
             server.send(std::string(result.at(0)["name"]),key);
         }
