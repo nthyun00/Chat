@@ -1,4 +1,5 @@
 #include "TcpSocket.h"
+#include "UserManagement.h"
 #include <mysql++/mysql++.h>
 #include <mysql++/result.h>
 #include <signal.h>
@@ -80,6 +81,22 @@ int main(int argc,char** argv)  //
                 mysqlpp::Connection con("chatroom","10.156.145.48","root","shangus1",3306);
                 mysqlpp::Query query=con.query();
                 mysqlpp::StoreQueryResult result;
+
+                query<<"select * from chatserver.roomnumber where number='"+to_string(roomNumber)+"'";
+                result=query.store();
+                vector<string> array=UserManagement::list2array(string(result.at(0)["memberlist"]));
+                
+                bool check=false;
+                for(string tmp:array)
+                    if(tmp==userID)
+                    {
+                        check=true;
+                        break;
+                    }
+                
+                if(check==false)
+                    exit(0);
+
 
                 pid_t pid1=fork();
                 if(pid1>0)
