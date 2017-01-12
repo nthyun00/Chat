@@ -14,12 +14,12 @@ const int key=23;
 
 void childHandler(int tmp)
 {
-    int status;
+    /*int status;
     pid_t pid;
 
     while((pid=waitpid(-1,&status,WNOHANG))>0)
-        ;
-    //wait(0);
+        ;*/
+    wait(0);
 }
 void writeLog(string param,string logFile="../chatinglog.txt")
 {
@@ -119,7 +119,6 @@ int main(int argc,char** argv)  //
                         query<<"update chatserver.roomnumber set nowmsg=nowmsg+1 where number="+to_string(roomNumber)+"";
                         query.store();
                     }
-                    wait(0);
                 }
                 else if(pid1==0)    //child
                 {
