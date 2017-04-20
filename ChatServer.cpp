@@ -23,7 +23,7 @@ int main(int argc,char** argv)
             if((pid=fork())==0)
             {
                 cout<<"connect!"<<endl;
-                UserManagement user(server,"chatserver","10.156.145.48","root","shangus1","../log.txt");
+                UserManagement user(server,"chatserver","10.156.145.48","root","","../log.txt");
                 while(1)
                 {
                     int uuid=atoi(server.receive(23).c_str());
